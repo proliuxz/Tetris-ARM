@@ -1,0 +1,57 @@
+;;; Copyright Up-tech 2003. All rights reserved.
+;
+; This scatterloading descriptor file defines: one load region (ROM_LOAD) 
+; and five execution regions (ROM_EXEC, RAM, HEAP, STACKS, ISR_STARTADDRESS).
+;
+; The entire program (code & data) is placed in ROM_EXEC which resides 
+; at 0xc080000, of length 1.5Mbytes.  Program execution starts at AREA
+; Init in init.s, which is placed '+First' in the image. Following reset, 
+; the first few instructions of init.s.
+;
+; RAM might be fast on-chip (internal) RAM, and is typically
+; used for the stack and code that must be executed quickly.
+
+; The ZI data will get created (initialized) in RAM, above the RW data.
+;
+; The region HEAP is used to locate the bottom of the heap immediately above 
+; the ZI data ("+0"). The heap will grow up from this address.
+;
+; The region STACKS is used to locate the top of the memory used to store
+; the stacks for each mode. The stacks will grow down from this address.
+;
+; The region ISR_STARTADDRESS is used to map the position of the 
+; interrupts.
+;
+; Regions marked UNINIT will be left uninitialized, i.e. they will not be 
+; zero-initialized by the C library when it starts-up.
+
+
+RAM_LOAD 0xc080000
+{
+    RAM_EXEC 0xc080000
+    {
+        44binit.o (init, +First)
+        * (+RO)
+    }
+
+    RAM 0x0c200000
+    {
+        * (+RW,+ZI)
+    }
+
+    HEAP +0 UNINIT
+    {
+        heap.o (+ZI)
+    }
+
+    STACKS 0xc7ff000 UNINIT
+    {
+        stack.o (+ZI)
+    }
+
+    ISR_STARTADDRESS 0xc7fff00 ;SDRAM bottom
+    {
+    	isr_address.o (+ZI)
+    }
+
+}
